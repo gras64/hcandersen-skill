@@ -9,7 +9,6 @@ class CommonStorytelling(MycroftSkill):
 
     def initialize(self):
         self.add_event('storytelling.response', self.handle_response)
-        self.add_event('storytelling.register', self.handle_register)
 
     @intent_file_handler('storytelling.common.intent')
     def handle_storytelling_common(self, message):
@@ -24,12 +23,6 @@ class CommonStorytelling(MycroftSkill):
             self.register = 0
             self.bus.emit(Message("storytelling", {'story': response}))
             time.sleep(3)
-            while True:
-                self.log.info(str(self.register))
-                time.sleep(0.2)
-                if self.register == 0:
-                    break
-
             stories = sorted(self.stories, reverse=True)
             self.log.info('choose ' + str(stories[0]))
 
@@ -39,11 +32,6 @@ class CommonStorytelling(MycroftSkill):
                              message.data.get('skill'),
                              message.data.get('title')))
 
-    def handle_register(self, message):
-        if message.data.get('register') == 'register':
-            self.register = self.register + 1
-        if not message.data.get('register') == 'deregister':
-            self.register = self.register - 1
 
 def create_skill():
     return CommonStorytelling()
