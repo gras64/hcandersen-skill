@@ -1,0 +1,7 @@
+# This file is auto translated by mycroft-msk. 
+# Please do a manuel inspection of the translation 
+ 
+# (tell | read ) (me |) (a|an) (good) (story | tale | fairy tale)
+(raconter | lire) (moi |) (a | an) (bon) (histoire | conte | conte de fées)  
+# (tell | read ) (me |) (the one | that) (story | tale | fairy tale) with {story}
+(raconter | lire) (moi |) (celui | qui) (histoire | conte | conte de fées) avec {story}  
