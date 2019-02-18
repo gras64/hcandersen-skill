@@ -22,9 +22,12 @@ class CommonStorytelling(MycroftSkill):
             self.stories = []
             self.register = 0
             self.bus.emit(Message("storytelling", {'story': response}))
-            time.sleep(3)
+            time.sleep(5)
             stories = sorted(self.stories, reverse=True)
+            story = stories[0]
             self.log.info('choose ' + str(stories[0]))
+            self.bus.emit(Message("storytelling."+story[1], {'story': story[2]}))
+
 
     def handle_response(self, message):
         self.log.info('response gotten from ' + message.data.get('skill'))
