@@ -52,7 +52,6 @@ class AndersensTales(MycroftSkill):
 
     def handle_storytelling(self, message):
         self.log.info('skill called')
-        self.bus.emit(Message("storytelling.register", {"register": 'register'}))
         story = message.data.get("story")
         result = match_one(story, list(self.index.keys()))
         if result[1] < 0.1:
@@ -88,8 +87,8 @@ class AndersensTales(MycroftSkill):
             self.is_reading = False
             self.settings['bookmark'] = 0
             self.settings['story'] = None
-            time.sleep(2)
-            self.speak_dialog('from_AndersensTales')
+            # time.sleep(2)
+            # self.speak_dialog('from_AndersensTales')
 
     def stop(self):
         self.log.info('stop is called')
