@@ -16,9 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from mycroft import MycroftSkill, intent_file_handler
+from mycroft import MycroftSkill
 from mycroft.util.parse import match_one
 from mycroft.audio import wait_while_speaking
+from mycroft.messagebus.message import Message
+
 import requests
 from bs4 import BeautifulSoup
 import time
@@ -38,39 +40,29 @@ class AndersensTales(MycroftSkill):
                          'it': 'https://www.andersenstories.com/it/andersen_fiabe/',
                          'nl': 'https://www.andersenstories.com/nl/andersen_sprookjes/'}
         self.url = self.lang_url[self.lang[:2]]
+        self.add_event('storytelling', self.handle_storytelling)
+        self.add_event('storytelling.'+self.name, self.handle_storytelling_read)
+        self.index = self.get_index(self.url + "list")
 
-    @intent_file_handler('AndersensTales.intent')
-    def handle_AndersensTales(self, message):
-        if message.data.get("tale") is None:
-            response = self.get_response('AndersensTales', num_retries=0)
-            if response is None:
-                return
+    def handle_storytelling_read(self, message):
+        story = message.data.get("story")
+        self.log.info('reading ' + story)
+        result = match_one(story, list(self.index.keys()))
+        self.tell_story(self.index.get(result[0]), 0)
+
+    def handle_storytelling(self, message):
+        self.log.info('skill called')
+        self.bus.emit(Message("storytelling.register", {"register": 'register'}))
+        story = message.data.get("story")
+        result = match_one(story, list(self.index.keys()))
+        if result[1] < 0.1:
+            return
         else:
-            response = message.data.get("tale")
-        index = self.get_index(self.url + "list")
-        self.log.info(index)
-        result = match_one(response, list(index.keys()))
-
-        if result[1] < 0.8:
-            self.speak_dialog('that_would_be', data={"story": result[0]})
-            response = self.ask_yesno('is_it_that')
-            if not response or response is 'no':
-                self.speak_dialog('no_story')
-                return
-        self.speak_dialog('i_know_that', data={"story": result[0]})
-        self.settings['story'] = result[0]
-        time.sleep(3)
-        self.tell_story(index.get(result[0]), 0)
-
-    @intent_file_handler('continue.intent')
-    def handle_continue(self, message):
-        if self.settings.get('story') is None:
-            self.speak_dialog('no_story_to_continue')
-        else:
-            story = self.settings.get('story')
-            self.speak_dialog('continue', data={"story": story})
-            index = self.get_index(self.url + "list")
-            self.tell_story(index.get(story), self.settings.get('bookmark') - 1)
+            self.log.info('sendig to messagebs')
+            self.bus.emit(Message("storytelling.response",
+                                      {'confidence': result[1],
+                                       'skill': self.name,
+                                       'title': result[0]}))
 
     def tell_story(self, url, bookmark):
         self.is_reading = True
